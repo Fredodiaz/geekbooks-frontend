@@ -1,5 +1,5 @@
 // Native Imports
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { View, Text, TextInput, Image, StyleSheet } from 'react-native'
 
 // Redux
@@ -7,33 +7,52 @@ import { connect } from 'react-redux'
 
 // Actions
 import { toggleForm, hasAccount } from '../actions/formActions'
+import { register } from '../actions/authActions'
+
+// Icons
+import { Ionicons } from '@expo/vector-icons';
 
 // Components
 import Button from './Button'
 
-const RegisterForm = ({toggleForm, hasAccount}) => {
+const RegisterForm = ( props ) => {
+    const { toggleForm, hasAccount, register, auth } = props
+
     const [email, changeEmailText] = useState('Email')
     const [name, changeNameText] = useState('Username')
     const [password, changePasswordText] = useState('Password')
     const uri = 'https://bitwiseindustries.com/wp-content/uploads/2020/03/owl.png'
+
+    // Handles logic for register such as invalid password
+    const handleRegister = (name, email, password) => {
+        register(name, email, password)
+    }
+
+    // Checks if user registered and redirects to login
+    useEffect(() => {
+        auth.isRegistered ? hasAccount() : null
+    }, [auth])
     
     return (
         <View style={styles.container}>
+
+            {/* X Button to Toggle Form Off */}
             <View style={styles.exitWrap}>
-                <Text onPress={() => toggleForm()} style={styles.exitText}>X</Text>
+                <Ionicons onPress={() => toggleForm()} name="ios-close" size={60} color={'black'}/>
             </View>
 
             <Image style={styles.image} source={{uri}}/>
             <Text style={styles.header}>Register</Text>
+
+            {/* Form for Registering */}
             <TextInput onChangeText={(text) => changeEmailText(text)} style={styles.input} value={email}/>
             <TextInput onChangeText={(text) => changeNameText(text)} style={styles.input} value={name}/>
             <TextInput onChangeText={(text) => changePasswordText(text)} style={styles.input} value={password}/>
+            <Button onSelect={() => handleRegister(name, email, password)} marginB={15} title="Register!" width={'60%'}/>
 
-            <Button onSelect={() => toggleForm()} marginB={15} title="Register!" width={'60%'}/>
-            {/* <Button onSelect={() => toggleForm()} title="Go Back" width={'40%'}/> */}
-
+            {/* Redirect if User Chooses to Login */}
             <View style={styles.textWrap}>
-                <Text style={styles.text}>Don't have an account? </Text>
+                <Text style={styles.text}>Already have an account? </Text>
                 <Text style={[styles.text, { color: 'blue' }]} onPress={() => hasAccount()}>Login</Text>
             </View>
 
@@ -78,7 +97,8 @@ const styles = StyleSheet.create({
 })
 
 const mapStateToProps = (state) => ({
-    form: state.form
+    form: state.form,
+    auth: state.auth
 })
 
-export default connect(mapStateToProps, { toggleForm, hasAccount })(RegisterForm)
+export default connect(mapStateToProps, { toggleForm, hasAccount, register })(RegisterForm)
